@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "592673120183",
+    "project_id": "closer-bd216",
+    "storage_bucket": "closer-bd216.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592673120183:android:0bc57b5f4468f28f011232",
+        "android_client_info": {
+          "package_name": "com.connectedliving.closer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "592673120183-joi9kms84guubk0oqrbd9efsjmj805l9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMgQ3090ZonwBnB1nM-5C6Xwkf9lEf7OU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592673120183-joi9kms84guubk0oqrbd9efsjmj805l9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
