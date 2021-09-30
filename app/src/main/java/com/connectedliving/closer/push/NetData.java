@@ -44,20 +44,6 @@ public class NetData {
     }
 
     public boolean sendMessage(MSG_TYPE type, String value) {
-        Message msg = new Message();
-        JSONObject json = new JSONObject();
-        try {
-            json.put("Type", type.getValue());
-            if (value != null) {
-                json.put("Message", value);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        msg.obj = json;
-        handler.sendMessage(msg);
         return true;
     }
 

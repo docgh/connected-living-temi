@@ -212,67 +212,71 @@ public class ClConnection {
     /**
      * Update the connection.  Create new HTTP connection, register with server
      */
-    public void updateConnection() throws Exception {
-        Configuration configuration = Configuration.getInstance();
-        Log.d("CL ", "Sending setup");
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(TIMEOUT)
-                .setConnectionRequestTimeout(TIMEOUT)
-                .setSocketTimeout(TIMEOUT).build();
-        client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
-        String uri = getBuilder()
-                .appendPath("register")
-                .appendQueryParameter("token", NetData.getInstance().getToken())
-                .appendQueryParameter("facility", configuration.getFacility())
-                .appendQueryParameter("robot", configuration.getDisplayName())
-                .appendQueryParameter("robotId", Integer.toString(configuration.getRobotId()))
-                .build().toString();
-        HttpPut req = new HttpPut(uri);
-        req.setEntity(new StringEntity(getRobotData()));
-        req.setHeader("Content-type", "application/json");
+    public void updateConnection() {
         try {
-            HttpResponse resp = client.execute(req);
-            StatusLine statusLine = resp.getStatusLine();
-            if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                resp.getEntity().writeTo(out);
-                String responseString = out.toString();
-                out.close();
-                if (responseString != null && responseString.contains("{")) {
-                    try {
-                        JSONObject respJSON = new JSONObject(responseString);
-                        // If we are provided with serverId, save for header
-                        if (respJSON.has("serverId")) {
-                            String serverId = respJSON.getString("serverId");
-                            sendStatus("Connected");
-                            getNextCommand(serverId, checkSetCookies(resp));
-                            return;
+            Configuration configuration = Configuration.getInstance();
+            Log.d("CL ", "Sending setup");
+            RequestConfig config = RequestConfig.custom()
+                    .setConnectTimeout(TIMEOUT)
+                    .setConnectionRequestTimeout(TIMEOUT)
+                    .setSocketTimeout(TIMEOUT).build();
+            client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+            String uri = getBuilder()
+                    .appendPath("register")
+                    .appendQueryParameter("token", NetData.getInstance().getToken())
+                    .appendQueryParameter("facility", configuration.getFacility())
+                    .appendQueryParameter("robot", configuration.getDisplayName())
+                    .appendQueryParameter("robotId", Integer.toString(configuration.getRobotId()))
+                    .build().toString();
+            HttpPut req = new HttpPut(uri);
+            req.setEntity(new StringEntity(getRobotData()));
+            req.setHeader("Content-type", "application/json");
+            try {
+                HttpResponse resp = client.execute(req);
+                StatusLine statusLine = resp.getStatusLine();
+                if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    resp.getEntity().writeTo(out);
+                    String responseString = out.toString();
+                    out.close();
+                    if (responseString != null && responseString.contains("{")) {
+                        try {
+                            JSONObject respJSON = new JSONObject(responseString);
+                            // If we are provided with serverId, save for header
+                            if (respJSON.has("serverId")) {
+                                String serverId = respJSON.getString("serverId");
+                                //sendStatus("Connected");
+                                getNextCommand(serverId, checkSetCookies(resp));
+                                return;
+                            }
+                        } catch (JSONException e) {
+                            Log.e("CL Setup", "Error setting cookie", e);
                         }
-                    } catch (JSONException e) {
-                        Log.e("CL Setup", "Error setting cookie", e);
                     }
+                    // Bad response
+                    Log.d("CL Connection", "No server info");
+                } else {
+                    Log.d("CL Setup", "Failed to get connection with server");
+                    //Closes the connection.
+                    resp.getEntity().getContent().close();
                 }
-                // Bad response
-                Log.d("CL Connection", "No server info");
-            } else {
-                Log.d("CL Setup", "Failed to get connection with server");
-                //Closes the connection.
-                resp.getEntity().getContent().close();
-            }
-            client.close();
+                client.close();
 
-        } catch (IOException ex) {
-            if (client != null) {
-                try {
-                    client.close();
-                } catch (IOException e) {
+            } catch (IOException ex) {
+                if (client != null) {
+                    try {
+                        client.close();
+                    } catch (IOException e) {
 
+                    }
+                    Log.d("CLConnection", ex.toString());
                 }
-                Log.d("CLConnection", ex.toString());
             }
+            client = null;
+            sendStatus("Not connected");
+        } catch (Exception e) {
+            client = null;
+            Log.e("CLConnection", "Error", e);
         }
-        client = null;
-        sendStatus("Not connected");
-
     }
 }

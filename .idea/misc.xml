@@ -4,6 +4,11 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/greg/AndroidStudioProjects/CLOSER/app/src/main/res/layout/activity_main.xml" value="0.335" />
+        <entry key="..\:/Users/greg/git/CLAndroid/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.15546875" />
+        <entry key="..\:/Users/greg/git/CLAndroid/app/src/main/res/drawable/cl_r_launcher_background.xml" value="0.15546875" />
+        <entry key="..\:/Users/greg/git/CLAndroid/app/src/main/res/layout/activity_main.xml" value="0.143359375" />
+        <entry key="..\:/Users/greg/git/CLAndroid/app/src/main/res/mipmap-anydpi-v26/cl_r_launcher_round.xml" value="0.2441717791411043" />
+        <entry key="..\:/Users/greg/git/CLAndroid/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2441717791411043" />
       </map>
     </option>
   </component>

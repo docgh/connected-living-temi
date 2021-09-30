@@ -3,12 +3,21 @@
     package="com.connectedliving.closer">
 
     <application
+        android:name=".CLApp"
         android:allowBackup="true"
         android:icon="@mipmap/cl_r_launcher"
         android:label="Connected Living Robotics"
         android:roundIcon="@mipmap/cl_r_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <receiver
+            android:name=".AutoStartReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -16,6 +25,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".CLService"
+            android:exported="true"
+            android:enabled="true">
+        </service>
         <service
             android:name=".push.CLFirebaseMessagingService"
             android:exported="false">
@@ -29,4 +42,6 @@
     </application>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>

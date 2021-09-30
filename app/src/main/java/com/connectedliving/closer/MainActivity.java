@@ -1,5 +1,6 @@
 package com.connectedliving.closer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.connectedliving.closer.push.ClConnection;
@@ -32,70 +34,19 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "CL";
-    private ConnectionMonitor monitor;
 
-    private void setUpFirebase(Handler handler) {
-        NetData netData = NetData.getInstance();
-        netData.setContext(getApplicationContext());
-        netData.setHandler(handler);
-        LifecycleOwner owner = this;
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(new OnCompleteListener<String>() {
-                    @Override
-                    public void onComplete(@NonNull Task<String> task) {
-                        if (!task.isSuccessful()) {
-                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-                            return;
-                        }
-
-                        // Get new FCM registration token
-                        String msg = task.getResult();
-
-                        Log.d(TAG, msg);
-                        netData.setToken(msg);
-                        monitor.connect(getApplicationContext(), owner);
-                    }
-                });
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        monitor = new ConnectionMonitor();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         LifecycleOwner owner = this;
-        RobotService service = new TemiRobotService(this);
-        TextView name = (TextView) findViewById(R.id.RobotId);
-        name.setText(service.getRobotId());
-        ActionParser.setService(service);
-        // Setup messages to main UI thread
-        Handler handler = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
-                TextView tv = (TextView) findViewById(R.id.serverStatus);
-                TextView command = (TextView) findViewById(R.id.CommandText);
-                JSONObject msgJson = (JSONObject) msg.obj;
-                try {
-                    if (msgJson.getInt("Type") == 1) {
-                        tv.setText(msgJson.getString("Message"));
-                    }
-                    if (msgJson.getInt("Type") == 2) {
-                        command.setText(msgJson.getString("Message"));
-                    }
-                    if (msgJson.getInt("Type") == 10) {
-                        monitor.connect(getApplicationContext(), owner);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        setUpFirebase(handler);
         Configuration config = new Configuration(this);
         setupUI(config);
         // Start without keyboard shown
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
+        Intent serviceIntent = new Intent(getApplicationContext(), CLService.class);
+        ContextCompat.startForegroundService(getApplicationContext(), serviceIntent);
     }
 
     /**
@@ -140,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 ClConnection.getInstance().terminate();
-                monitor.connect(getApplicationContext(), owner, true);
+                ConnectionMonitor.getInstance().connect(getApplicationContext(), owner, true);
                 return true;
             }
         });
@@ -149,8 +100,25 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 updateConfig(config);
-                ClConnection.getInstance().terminate();
-                monitor.connect(getApplicationContext(), owner, true);
+                return true;
+            }
+        });
+        Button startService = (Button) findViewById(R.id.StartService);
+        startService.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Intent serviceIntent = new Intent(getApplicationContext(), CLService.class);
+                serviceIntent.putExtra("Testing", "test text");
+                ContextCompat.startForegroundService(getApplicationContext(), serviceIntent);
+                return true;
+            }
+        });
+        Button stopService = (Button) findViewById(R.id.StopService);
+        stopService.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Intent serviceIntent = new Intent(getApplicationContext(), CLService.class);
+                stopService(serviceIntent);
                 return true;
             }
         });

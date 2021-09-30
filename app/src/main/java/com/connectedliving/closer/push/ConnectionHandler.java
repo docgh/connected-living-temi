@@ -21,7 +21,7 @@ public class ConnectionHandler extends Worker {
     public ListenableWorker.Result doWork() {
         if (Looper.myLooper() == null) Looper.prepare();
         String commandData = getInputData().getString("msg");
-        if (commandData != null) {
+        if (commandData != null && !commandData.isEmpty()) {
             ActionParser.doAction(commandData);
         }
         try {

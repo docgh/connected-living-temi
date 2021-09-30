@@ -1,6 +1,7 @@
 package com.connectedliving.closer.robot.impl;
 
 import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 
 import com.connectedliving.closer.push.ClConnection;
@@ -16,14 +17,14 @@ import java.util.List;
 
 public class TemiRobotService extends AbstractRobotService {
 
-    Activity activity;
+    Context context;
     TemiCamera cam;
     MovementThread move = null;
 
-    public TemiRobotService(Activity activity) {
+    public TemiRobotService(Context context) {
         instance = this;
-        this.activity = activity;
-        cam = new TemiCamera(activity);
+        this.context = context;
+        cam = new TemiCamera(context);
     }
 
     @Override

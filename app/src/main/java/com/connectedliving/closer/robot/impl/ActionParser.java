@@ -25,6 +25,10 @@ public class ActionParser {
 
     private static void sendCommand(String text) {
         try {
+            // Ignore for now
+            if (text != null) {
+                return;
+            }
             Message msg = new Message();
             JSONObject json = new JSONObject();
             json.put("Type", 2);

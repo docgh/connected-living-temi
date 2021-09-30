@@ -3,17 +3,19 @@ package com.connectedliving.closer;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 public class Configuration {
 
-    Activity activity;
+    Context context;
     private static Configuration instance;
     private String facility;
     private int robotId;
     private String displayName;
 
-    public Configuration(Activity activity) {
-        this.activity = activity;
+    public Configuration(Context context) {
+        this.context = context;
+        update();
         instance = this;
     }
 
@@ -28,7 +30,7 @@ public class Configuration {
      * Update from storage
      */
     public void update() {
-        SharedPreferences sharedPref = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         this.robotId = sharedPref.getInt("RobotId", 0);
         this.displayName = sharedPref.getString("DisplayName", "");
         this.facility = sharedPref.getString("Facility", "");
@@ -38,7 +40,7 @@ public class Configuration {
      * Perform save
      */
     public void save() {
-        SharedPreferences sharedPref = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("Facility", this.facility);
         editor.putString("DisplayName", this.displayName);

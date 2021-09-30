@@ -35,7 +35,7 @@ import java.util.List;
 public class TemiCamera {
 
     private final CameraManager manager;
-    private final Activity activity;
+    private final Context context;
     private String cameraId;
     private Size imageDimension;
     private ImageReader imageReader;
@@ -47,9 +47,9 @@ public class TemiCamera {
     private boolean capturing;
     private ImageReader reader;
 
-    public TemiCamera(Activity activity) {
-        this.activity = activity;
-        this.manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
+    public TemiCamera(Context context) {
+        this.context = context;
+        this.manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
     }
 
     public void getPicture() {
@@ -197,8 +197,20 @@ public class TemiCamera {
             assert map != null;
             imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
             // Add permission for camera and let user grant the permission
-            if (ActivityCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+            /**
+             if (ActivityCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+             return;
+             }
+             */
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
                 return;
             }
             manager.openCamera(cameraId, stateCallback, mBackgroundHandler);

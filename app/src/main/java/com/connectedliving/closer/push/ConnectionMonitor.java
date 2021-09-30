@@ -5,12 +5,14 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.Operation;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import java.sql.Connection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executor;
@@ -21,21 +23,40 @@ import java.util.concurrent.Executor;
  */
 public class ConnectionMonitor {
 
+    private static ConnectionMonitor instance;
     private static final String WORK_TAG = "Connection";
     private final int DELAY = 30 * 1000;  // Delay between re-connect attempts
+
+    public ConnectionMonitor() {
+        this.instance = this;
+    }
+
+    public static ConnectionMonitor getInstance() {
+        if (instance == null) {
+            instance = new ConnectionMonitor();
+        }
+        return instance;
+    }
 
     public void connect(Context context, LifecycleOwner activity) {
         connect(context, activity, false);
     }
 
     public void connect(Context context, LifecycleOwner activity, boolean force) {
-        OneTimeWorkRequest connectionRequest = new OneTimeWorkRequest.Builder(ConnectionHandler.class).addTag(WORK_TAG).build();
+        Data inputData = new Data.Builder()
+                .putString("msg", "")
+                .build();
+        connect(context, activity, force, inputData);
+    }
+
+    public void connect(Context context, LifecycleOwner activity, boolean force, Data inputData) {
+        OneTimeWorkRequest connectionRequest = new OneTimeWorkRequest.Builder(ConnectionHandler.class).setInputData(inputData).addTag(WORK_TAG).build();
         Operation future =
-                WorkManager.getInstance(context).beginUniqueWork(WORK_TAG, ExistingWorkPolicy.KEEP, connectionRequest).enqueue();
+                WorkManager.getInstance(context).beginUniqueWork(WORK_TAG, ExistingWorkPolicy.REPLACE, connectionRequest).enqueue();
         future.getResult().addListener(new Runnable() {
             @Override
             public void run() {
-                finished();
+                // Need?
             }
         }, new CurrentThreadExecutor());
         WorkManager.getInstance(context).getWorkInfoByIdLiveData(connectionRequest.getId()).observe(activity, workInfo -> {
@@ -51,7 +72,7 @@ public class ConnectionMonitor {
                                 // Make sure we haven't reconnected from another thread or interaction
                                 Log.d("Connection Monitor", "reconnecting");
                                 if (force || !ClConnection.getInstance().connected()) {
-                                    NetData.getInstance().sendMessage(NetData.MSG_TYPE.NETWORK_RESET);
+                                    connect(context, activity, false);
                                 } else {
                                     Log.d("Connection Monitor", "Possible collision");
                                 }
@@ -61,11 +82,6 @@ public class ConnectionMonitor {
 
                 }
         );
-
-    }
-
-    private void finished() {
-        Log.d("Monitor", "Finished");
 
     }
 
