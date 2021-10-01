@@ -1,13 +1,12 @@
 package com.connectedliving.closer.push;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
-import androidx.work.Data;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
-import androidx.work.WorkRequest;
+import androidx.core.content.ContextCompat;
 
+import com.connectedliving.closer.CLService;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -51,12 +50,18 @@ public class CLFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
-
+        /*
         Data inputData = new Data.Builder()
                 .putString("msg", payload)
                 .build();
         WorkRequest connectionRequest = new OneTimeWorkRequest.Builder(ConnectionHandler.class).setInputData(inputData).build();
         WorkManager.getInstance(getApplicationContext()).enqueue(connectionRequest);
+        */
+        // Service likely killed/asleep.  Restart and send command
+        Intent serviceIntent = new Intent(getApplicationContext(), CLService.class);
+        getApplicationContext().stopService(serviceIntent);
+        serviceIntent.putExtra("Command", payload);
+        ContextCompat.startForegroundService(getApplicationContext(), serviceIntent);
 
     }
 }

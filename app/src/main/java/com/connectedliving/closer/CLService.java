@@ -5,16 +5,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
-import android.app.Service;
-
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.LifecycleService;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LifecycleService;
 
 import com.connectedliving.closer.push.ConnectionMonitor;
 import com.connectedliving.closer.push.NetData;
@@ -31,6 +28,7 @@ public class CLService extends LifecycleService implements OnRobotReadyListener 
 
     private static final String TAG = "CLService";
     private String fbTag = "";
+    private String startupCommand;
 
     private void setUpFirebase() {
         NetData netData = NetData.getInstance();
@@ -67,6 +65,7 @@ public class CLService extends LifecycleService implements OnRobotReadyListener 
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         Robot.getInstance().addOnRobotReadyListener(this);
+        startupCommand = intent.getStringExtra("Command");
         return START_NOT_STICKY;
     }
     @Override
@@ -86,6 +85,10 @@ public class CLService extends LifecycleService implements OnRobotReadyListener 
         Configuration config = new Configuration(getApplicationContext());
         RobotService service = new TemiRobotService(this);
         ActionParser.setService(service);
+        if (startupCommand != null && !startupCommand.isEmpty()) {
+            ActionParser.doAction(startupCommand);
+            startupCommand = null;
+        }
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, 0);
