@@ -1,45 +1,38 @@
 package com.connectedliving.closer;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.connectedliving.closer.push.ClConnection;
 import com.connectedliving.closer.push.ConnectionMonitor;
-import com.connectedliving.closer.push.NetData;
-import com.connectedliving.closer.robot.RobotService;
-import com.connectedliving.closer.robot.impl.ActionParser;
-import com.connectedliving.closer.robot.impl.TemiRobotService;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.messaging.FirebaseMessaging;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "CL";
+    private static final int REQUEST_CAMERA_PERMISSION = 200;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        checkPermissions();
         LifecycleOwner owner = this;
         Configuration config = new Configuration(this);
         setupUI(config);
@@ -49,15 +42,30 @@ public class MainActivity extends AppCompatActivity {
         ContextCompat.startForegroundService(getApplicationContext(), serviceIntent);
     }
 
+    private void checkPermissions() {
+        String packageName = getPackageName();
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + packageName));
+            startActivity(intent);
+        }
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+            return;
+        }
+    }
+
     /**
      * Update the display from configuration
      *
      * @param config
      */
     private void updateValues(Configuration config) {
-        EditText facility = (EditText) findViewById(R.id.FacilityName);
-        EditText displayName = (EditText) findViewById(R.id.RobotDisplayName);
-        EditText robotId = (EditText) findViewById(R.id.RobotNumber);
+        EditText facility = findViewById(R.id.FacilityName);
+        EditText displayName = findViewById(R.id.RobotDisplayName);
+        EditText robotId = findViewById(R.id.RobotNumber);
         facility.setText(config.getFacility());
         displayName.setText(config.getDisplayName());
         robotId.setText(Integer.toString(config.getRobotId()));
@@ -70,9 +78,9 @@ public class MainActivity extends AppCompatActivity {
      */
     private void updateConfig(Configuration config) {
         Log.d("Updated Config", "updating");
-        EditText facility = (EditText) findViewById(R.id.FacilityName);
-        EditText displayName = (EditText) findViewById(R.id.RobotDisplayName);
-        EditText robotId = (EditText) findViewById(R.id.RobotNumber);
+        EditText facility = findViewById(R.id.FacilityName);
+        EditText displayName = findViewById(R.id.RobotDisplayName);
+        EditText robotId = findViewById(R.id.RobotNumber);
         config.setDisplayName(displayName.getText().toString());
         config.setFacility(facility.getText().toString());
         config.setRobotId(Integer.parseInt(robotId.getText().toString()));
@@ -85,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupUI(Configuration config) {
         config.update();
         updateValues(config);
-        Button connectButton = (Button) findViewById(R.id.ConnectButton);
+        Button connectButton = findViewById(R.id.ConnectButton);
         LifecycleOwner owner = this;
         connectButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -95,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        Button saveButton = (Button) findViewById(R.id.SaveButton);
+        Button saveButton = findViewById(R.id.SaveButton);
         saveButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -103,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        Button startService = (Button) findViewById(R.id.StartService);
+        Button startService = findViewById(R.id.StartService);
         startService.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -113,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        Button stopService = (Button) findViewById(R.id.StopService);
+        Button stopService = findViewById(R.id.StopService);
         stopService.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
