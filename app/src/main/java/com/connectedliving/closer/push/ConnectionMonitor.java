@@ -1,6 +1,8 @@
 package com.connectedliving.closer.push;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,7 +14,6 @@ import androidx.work.Operation;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
-import java.sql.Connection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executor;
@@ -28,7 +29,7 @@ public class ConnectionMonitor {
     private final int DELAY = 30 * 1000;  // Delay between re-connect attempts
 
     public ConnectionMonitor() {
-        this.instance = this;
+        instance = this;
     }
 
     public static ConnectionMonitor getInstance() {
@@ -72,7 +73,14 @@ public class ConnectionMonitor {
                                 // Make sure we haven't reconnected from another thread or interaction
                                 Log.d("Connection Monitor", "reconnecting");
                                 if (force || !ClConnection.getInstance().connected()) {
-                                    connect(context, activity, false);
+                                    Handler handler = new Handler(Looper.getMainLooper());
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            connect(context, activity, false);
+                                        }
+                                    });
+                                    //connect(context, activity, false);
                                 } else {
                                     Log.d("Connection Monitor", "Possible collision");
                                 }
